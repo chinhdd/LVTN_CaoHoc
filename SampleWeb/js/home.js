@@ -189,6 +189,16 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
     var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left");
+			
+	var ohlcAnnotation = techan.plot.axisannotation()
+            .axis(yAxis)
+            .format(d3.format(',.2fs'));
+	var timeAnnotation = techan.plot.axisannotation()
+            .axis(xAxis)
+            .format(d3.time.format('%Y-%m-%d'))
+            .width(65)
+            .translate([0, height]);
+	
 
     var svg = d3.select("#" + domObjStr).append("svg")
             .attr("width", width + margin.left + margin.right)
@@ -196,6 +206,34 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
         .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+	var coordsText = svg.append('text')
+            .style("text-anchor", "end")
+            .attr("class", "coords")
+            .attr("x", width - 5)
+            .attr("y", 15);
+	var enter = function () {
+        coordsText.style("display", "inline");
+    }
+
+    var out = function () {
+        coordsText.style("display", "none");
+    }
+
+    var move = function (coords) {
+        coordsText.text(
+            timeAnnotation.format()(coords[0]) + ", " + ohlcAnnotation.format()(coords[1])
+        );
+    }
+	
+	var crosshair = techan.plot.crosshair()
+            .xScale(x)
+            .yScale(y)
+            .xAnnotation(timeAnnotation)//, timeTopAnnotation])
+            .yAnnotation(ohlcAnnotation)//, ohlcRightAnnotation])
+            .on("enter", enter)
+            .on("out", out)
+            .on("move", move);
+			
     svg.append("clipPath")
             .attr("id", "clip")
         .append("rect")
@@ -220,6 +258,12 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
             .attr("dy", ".71em")
             .style("text-anchor", "end")
             .text("Price ($)");
+			
+	svg.append('g')
+                .attr("class", "crosshair");
+                //.call(crosshair);
+	//svg.select('g.crosshair').call(crosshair);
+	//svg.select('g.crosshair').call(zoom);
 
 	var draw = function () {
         svg.select("g.candlestick").call(candlestick);
@@ -232,12 +276,12 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
 			
 	var zoom = d3.behavior.zoom()
             .on("zoom", draw);		
-	
-    svg.append("rect")
+	svg.select('g.crosshair').call(crosshair).call(zoom);
+    /* svg.append("rect")
             .attr("class", "pane")
             .attr("width", width)
             .attr("height", height)
-            .call(zoom);
+            .call(zoom); */
 
 	var data = [
 		{ date: new Date(2015, 2, 27, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
@@ -267,8 +311,17 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
 	y.domain(techan.scale.plot.ohlc(data, accessor).domain());
 
 	svg.select("g.candlestick").datum(data);
+	var zoomable = x.zoomable();
+	zoomable.domain([2,4]);
+	
+	var mid = data.length / 2;
+	var standard = 960 / (500 * 200);
+	var real = width / height;
+	var numberSampleShow = real / standard;
+	zoomable.domain([mid - numberSampleShow / 2, mid + numberSampleShow / 2]);
+	
 	draw();
 
 	// Associate the zoom with the scale after a domain has been applied
-	zoom.x(x.zoomable().clamp(false)).y(y);
+	zoom.x(zoomable.clamp(false)).y(y);
 };
