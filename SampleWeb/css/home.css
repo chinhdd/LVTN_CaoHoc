@@ -1,3 +1,8 @@
+.flot-chart {
+	display: block;
+	height: 600px;
+	font: 10px sans-serif;
+}
 .axis path,
 .axis line {
 	fill: none;
@@ -23,49 +28,8 @@ path.candle.down {
 	stroke: #FF0000;
 }
 
-.trendline {
-	stroke: blue;
-	stroke-width: 0.8;
-}
-
-.trendline circle {
-	stroke-width: 0;
-	display: none;
-}
-
-.mouseover .trendline path {
-	stroke-width: 1;
-}
-
-.mouseover .trendline circle {
-	stroke-width: 1;
-	display: inline;
-}
-
-.dragging .trendline {
-	stroke: darkblue;
-}
-
-.interaction path, .interaction circle {
-	pointer-events: all;
-}
-
-.interaction .body {
+rect.pane {
 	cursor: move;
-}
-
-.interaction .start, .interaction .end {
-	cursor: nwse-resize;
-}
-
-.tooltip{
-    position: absolute;
-    display: none;
-    padding: 5px;
-    background: rgba(255,255,255, .9);
-}
-
-.pane {
-    fill: none;
-    pointer-events: all;
+	fill: none;
+	pointer-events: all;
 }

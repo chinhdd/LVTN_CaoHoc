@@ -139,7 +139,10 @@ $(document).ready(function() {
 	};
 	var myInitPage = function () {
 		console.log('my init page');
-		createChartObject('flot-dashboard-chart', 700, 600, 0);
+		var mainChart = $('#main-chart-forex');
+		console.log(mainChart);
+		console.log(mainChart.width() + ', ' + mainChart.height());
+		createChartObject('flot-dashboard-chart', mainChart.width(), mainChart.height(), 0);
 		/* $.ajax({
 			url : "forex/data/EURUSD",
 			data : 'data',
@@ -162,16 +165,12 @@ $(document).ready(function() {
 	myInitPage();
 });
 var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriData) {
-	var str = domObjStr;
-    var tip = d3.select('#' + str).append('div').attr('class', 'tooltip');
-    
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+	
+	var margin = {top: 20, right: 20, bottom: 30, left: 50},
             width = requiredWidth - margin.left - margin.right,
             height = requiredHeight - margin.top - margin.bottom;
 
-    var parseDate = d3.time.format("%d-%b-%y").parse,
-            timeFormat = d3.time.format('%Y-%m-%d'),
-            valueFormat = d3.format(',.2fs');
+    var parseDate = d3.time.format("%d-%b-%y").parse;
 
     var x = techan.scale.financetime()
             .range([0, width]);
@@ -183,33 +182,6 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
             .xScale(x)
             .yScale(y);
 
-    var enter = function (d) {
-        valueText.style("display", "inline");
-        refreshText(d);
-    };
-
-    var out = function (d) {
-        valueText.style("display", "none");
-    };
-
-    var drag = function (d) {
-        refreshText(d);
-    };
-
-    var refreshText = function (d) {
-        valueText.text(
-                "Start: [" + timeFormat(d.start.date) + ", " + valueFormat(d.start.value) +
-                "] End: [" + timeFormat(d.end.date) + ", " + valueFormat(d.end.value) + "]"
-        );
-    };
-    
-    var trendline = techan.plot.trendline()
-            .xScale(x)
-            .yScale(y)
-            .on("mouseenter", enter)
-            .on("mouseout", out)
-            .on("drag", drag);
-
     var xAxis = d3.svg.axis()
             .scale(x)
             .orient("bottom");
@@ -218,20 +190,56 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
             .scale(y)
             .orient("left");
 
-    var svg = d3.select("#" + str).append("svg")
+    var svg = d3.select("#" + domObjStr).append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
-            .append("g")
+        .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var valueText = svg.append('text')
-            .style("text-anchor", "end")
-            .attr("class", "coords")
-            .attr("x", width - 5)
-            .attr("y", 15);
+    svg.append("clipPath")
+            .attr("id", "clip")
+        .append("rect")
+            .attr("x", 0)
+            .attr("y", y(1))
+            .attr("width", width)
+            .attr("height", y(0) - y(1));
 
-    // So it turns out that TechanJS will do the right thing with gaps. it assigns it indexes.
-    var data = [
+    svg.append("g")
+            .attr("class", "candlestick")
+            .attr("clip-path", "url(#clip)");
+
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")");
+
+    svg.append("g")
+            .attr("class", "y axis")
+        .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Price ($)");
+
+	var draw = function () {
+        svg.select("g.candlestick").call(candlestick);
+        // using refresh method is more efficient as it does not perform any data joins
+        // Use this if underlying data is not changing
+//        svg.select("g.candlestick").call(candlestick.refresh);
+        svg.select("g.x.axis").call(xAxis);
+        svg.select("g.y.axis").call(yAxis)
+    }
+			
+	var zoom = d3.behavior.zoom()
+            .on("zoom", draw);		
+	
+    svg.append("rect")
+            .attr("class", "pane")
+            .attr("width", width)
+            .attr("height", height)
+            .call(zoom);
+
+	var data = [
 		{ date: new Date(2015, 2, 27, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
 		{ date: new Date(2015, 2, 28, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
         { date: new Date(2015, 3, 1, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
@@ -254,60 +262,13 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
             //volume: +d.volume
         };
     }).sort(function(a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
-    x.domain(data.map(accessor.d));
-    y.domain(techan.scale.plot.ohlc(data, accessor).domain());
+	
+	x.domain(data.map(accessor.d));
+	y.domain(techan.scale.plot.ohlc(data, accessor).domain());
 
-    svg.append("g")
-            .datum(data)
-            .attr("class", "candlestick")
-            .call(candlestick);
+	svg.select("g.candlestick").datum(data);
+	draw();
 
-    svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
-
-    svg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis)
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
-            .attr("dy", ".71em")
-            .style("text-anchor", "end")
-            .text("Price ($)");
-
-    svg.append('rect')
-            .datum(data)
-            .attr({class: 'pane', height: height, width: width})
-            .on('mousemove', function(d){
-                var i = x.invertToIndex(d3.mouse(this)[0]);
-                // TODO Ensure i is within range...
-                console.log('Index: ' + i );
-                var d = d[i];
-                tip.html(function(){
-                	if (typeof d === 'object') {
-                        var html = "<strong>Date:</strong> " + d.date + "<br>";
-                        html += "<strong>Open: </strong> " + d.open + "<br>";
-                        html += "<strong>High: </strong> " + d.high + "<br>";
-                        html += "<strong>Low: </strong> " + d.low + "<br>";
-                        html += "<strong>Close: </strong> " + d.close + "<br>";
-                        html += "<strong>RANGE: </strong> " + (d.high - d.low) + "<br>";
-                        return html;
-                	}
-                })
-                .style({
-                    left: d3.event.pageX + 20 + 'px', 
-                    top: d3.event.pageY - 20 + 'px',
-                    display: 'block'
-                });
-
-            })
-            .on('mouseout', function(){
-                //tip.style('display', 'none');
-            });
-
-    // functions
-
-    
+	// Associate the zoom with the scale after a domain has been applied
+	zoom.x(x.zoomable().clamp(false)).y(y);
 };
