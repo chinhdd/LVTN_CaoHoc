@@ -159,6 +159,12 @@ $(document).ready(function() {
 		}).fail(function(val) {
 			console.log(val);
 		}); */
+		$('#today-button').on('click', function () {
+			$('.tradearrow').show();
+		});
+		$('#monthly-button').on('click', function () {
+			$('.tradearrow').hide();
+		});
 	};
 	
 	initPage();
