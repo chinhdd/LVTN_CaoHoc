@@ -181,6 +181,11 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
     var candlestick = techan.plot.candlestick()
             .xScale(x)
             .yScale(y);
+			
+	var tradearrow = techan.plot.tradearrow()
+            .xScale(x)
+            .yScale(y)
+            .orient(function(d) { return d.type.startsWith("buy") ? "up" : "down"; });
 
     var xAxis = d3.svg.axis()
             .scale(x)
@@ -271,13 +276,13 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
         // Use this if underlying data is not changing
 //        svg.select("g.candlestick").call(candlestick.refresh);
         svg.select("g.x.axis").call(xAxis);
-        svg.select("g.y.axis").call(yAxis)
+        svg.select("g.y.axis").call(yAxis);
+		svg.select("g.tradearrow").call(tradearrow.refresh);
     }
 			
 	var zoom = d3.behavior.zoom()
             .on("zoom", draw);		
-	svg.select('g.crosshair').call(crosshair).call(zoom);
-    /* svg.append("rect")
+	/* svg.append("rect")
             .attr("class", "pane")
             .attr("width", width)
             .attr("height", height)
@@ -294,7 +299,24 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
         { date: new Date(2015, 3, 2, 9,4,10,0), open: 63.5, high: 63.8, low: 62.8, close: 62.8 },
     ];
 
-
+	
+            //.on("mouseenter", enter)
+            //.on("mouseout", out);
+	var trades = [
+            { date: data[0].date, type: "buy", price: data[0].low, quantity: 1000 },
+            { date: data[1].date, type: "sell", price: data[1].high, quantity: 200 }//,
+            //{ date: data[3].date, type: "buy", price: data[3].open, quantity: 500 },
+            //{ date: data[5].date, type: "sell", price: data[5].close, quantity: 300 },
+            //{ date: data[6].date, type: "buy-pending", price: data[6].low, quantity: 300 }
+        ];
+	svg.append("g")
+                .datum(trades)
+                .attr("class", "tradearrow")
+                .call(tradearrow);
+	
+	svg.select('g.crosshair').call(crosshair).call(zoom);
+    
+	
     var accessor = candlestick.accessor();
     data = data/*.slice(0,200)*/.map(function(d) {
         return {
