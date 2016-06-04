@@ -425,8 +425,8 @@
                                 <h5>Orders</h5>
                                 <div class="pull-right">
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-xs btn-white active">Today</button>
-                                        <button type="button" class="btn btn-xs btn-white">Monthly</button>
+                                        <button type="button" class="btn btn-xs btn-white active" id="today-button">Today</button>
+                                        <button type="button" class="btn btn-xs btn-white" id="monthly-button">Monthly</button>
                                         <button type="button" class="btn btn-xs btn-white">Annual</button>
                                     </div>
                                 </div>
@@ -434,7 +434,7 @@
                             <div class="ibox-content">
                                 <div class="row">
                                 <div class="col-lg-9">
-                                    <div class="flot-chart">
+                                    <div class="flot-chart" id="main-chart-forex">
                                         <div class="flot-chart-content" id="flot-dashboard-chart"></div>
                                     </div>
                                 </div>
@@ -472,6 +472,63 @@
                             </div>
                         </div>
                     </div>
+					
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>Wave 1</h5>						
+					</div>
+					<div class="ibox-content">
+						<div class="row">
+							<div class="col-lg-9">
+								<div class="flot-chart">
+									<div class="flot-chart-content"></div>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>Wave 2</h5>						
+					</div>
+					<div class="ibox-content">
+						<div class="row">
+							<div class="col-lg-9">
+								<div class="flot-chart">
+									<div class="flot-chart-content"></div>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>Wave 3</h5>
+					</div>
+					<div class="ibox-content">
+						<div class="row">
+							<div class="col-lg-9">
+								<div class="flot-chart">
+									<div class="flot-chart-content"></div>
+								</div>
+							</div>
+							
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
 
 
                 <div class="row">
