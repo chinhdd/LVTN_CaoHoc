@@ -142,7 +142,7 @@ $(document).ready(function() {
 		var mainChart = $('#main-chart-forex');
 		console.log(mainChart);
 		console.log(mainChart.width() + ', ' + mainChart.height());
-		createChartObject('flot-dashboard-chart', mainChart.width(), mainChart.height(), 0);
+		gSystem.svg = createChartObject('flot-dashboard-chart', mainChart.width(), mainChart.height(), 0);
 		/* $.ajax({
 			url : "forex/data/EURUSD",
 			data : 'data',
@@ -161,15 +161,34 @@ $(document).ready(function() {
 		}); */
 		$('#today-button').on('click', function () {
 			$('.tradearrow').show();
+			console.log(gSystem.svg);
+			var data = [
+				{ date: new Date(2015, 2, 27, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
+				{ date: new Date(2015, 2, 28, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
+				{ date: new Date(2015, 3, 1, 9,0,0,0), open: 62.40, high: 63, low: 62, close: 63 },
+				{ date: new Date(2015, 3, 1, 9,3,30,0), open: 63, high: 63.5, low: 62.5, close: 63.5 },
+				{ date: new Date(2015, 3, 1, 9,4,5,0), open: 63.5, high: 63.8, low: 62.8, close: 62.8 },
+				{ date: new Date(2015, 3, 1, 9,4,10,0), open: 62.8, high: 62.8, low: 61.8, close: 61.8 },
+				{ date: new Date(2015, 3, 2, 9,4,5,0), open: 63.5, high: 63.8, low: 62.8, close: 62.8 },
+				{ date: new Date(2015, 3, 2, 9,4,10,0), open: 63.5, high: 63.8, low: 62.8, close: 62.8 },
+			];
+			var trade2 = [
+				//{ date: data[0].date, type: "buy", price: data[0].low, quantity: 1000 },
+				//{ date: data[1].date, type: "sell", price: data[1].high, quantity: 200 }//,
+				{ date: data[3].date, type: "buy", price: data[3].open, quantity: 500 },
+				{ date: data[5].date, type: "sell", price: data[5].close, quantity: 300 },
+				{ date: data[6].date, type: "buy-pending", price: data[6].low, quantity: 300 }
+			];
+			var cTradearrow = gSystem.svg.svg.select('g.tradearrow');
+			var cArrow = gSystem.svg.tradearrow;
+			var cRefresh = cArrow.refresh;
+			cTradearrow.datum(trade2).call(cArrow);
+			cTradearrow.call(cArrow);
+			//cTradearrow.call(gSystem.svg.tradearrow.refresh);
 		});
 		$('#monthly-button').on('click', function () {
 			$('.tradearrow').hide();
 		});
-		
-		var inputPolePane = $('#input-wave-pole-pane');
-		var i = 2;
-		inputPolePane.find('li:nth-child(' + i + ')').find('.stat-percent').html('1.235');
-		inputPolePane.find('li:nth-child(' + i + ')').find('.progress-bar').css('width', '70%');
 	};
 	
 	initPage();
@@ -288,12 +307,11 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
 //        svg.select("g.candlestick").call(candlestick.refresh);
         svg.select("g.x.axis").call(xAxis);
         svg.select("g.y.axis").call(yAxis);
-		svg.select("g.tradearrow").call(tradearrow.refresh);
+		
     }
 			
 	var zoom = d3.behavior.zoom()
             .on("zoom", draw);		
-	svg.select('g.crosshair').call(crosshair).call(zoom);
 	/* svg.append("rect")
             .attr("class", "pane")
             .attr("width", width)
@@ -316,8 +334,8 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
             //.on("mouseout", out);
 	var trades = [
             { date: data[0].date, type: "buy", price: data[0].low, quantity: 1000 },
-            { date: data[1].date, type: "sell", price: data[1].high, quantity: 200 }//,
-            //{ date: data[3].date, type: "buy", price: data[3].open, quantity: 500 },
+            { date: data[1].date, type: "sell", price: data[1].high, quantity: 200 },
+            { date: data[3].date, type: "buy", price: data[3].open, quantity: 500 }
             //{ date: data[5].date, type: "sell", price: data[5].close, quantity: 300 },
             //{ date: data[6].date, type: "buy-pending", price: data[6].low, quantity: 300 }
         ];
@@ -326,7 +344,16 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
                 .attr("class", "tradearrow")
                 .call(tradearrow);
 	
+	svg.select('g.crosshair').call(crosshair).call(zoom);
 	
+	var trades2 = [
+            //{ date: data[0].date, type: "buy", price: data[0].low, quantity: 1000 },
+            //{ date: data[1].date, type: "sell", price: data[1].high, quantity: 200 }//,
+            { date: data[3].date, type: "buy", price: data[3].open, quantity: 500 },
+            { date: data[5].date, type: "sell", price: data[5].close, quantity: 300 },
+            { date: data[6].date, type: "buy-pending", price: data[6].low, quantity: 300 }
+        ];
+	svg.select('g.tradearrow').datum(trades2).call(tradearrow);
     
 	
     var accessor = candlestick.accessor();
@@ -354,8 +381,12 @@ var createChartObject = function (domObjStr, requiredWidth, requiredHeight, oriD
 	var numberSampleShow = real / standard;
 	zoomable.domain([mid - numberSampleShow / 2, mid + numberSampleShow / 2]);
 	
+	svg.select("g.tradearrow").call(tradearrow);
+	
 	draw();
 
+	
 	// Associate the zoom with the scale after a domain has been applied
 	zoom.x(zoomable.clamp(false)).y(y);
+	return { 'svg': svg, 'tradearrow': tradearrow };
 };
