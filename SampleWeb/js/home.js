@@ -170,6 +170,42 @@ $(document).ready(function() {
 		var i = 2;
 		inputPolePane.find('li:nth-child(' + i + ')').find('.stat-percent').html('1.235');
 		inputPolePane.find('li:nth-child(' + i + ')').find('.progress-bar').css('width', '70%');
+		
+		$.mockjax({
+			url: '/some/api',
+			dataType: 'application/json',
+			response: function() {
+				var obj = {
+					type: 'test',
+					value: 'value'
+				};
+				var objArray = {
+					customer: [obj]
+				};
+				this.responseText = JSON.stringify(objArray);
+			}
+		});
+		
+		$(document).ready(function() {
+			$('#example').DataTable({
+				"ajax": {
+					url: '/some/api',
+					type: 'POST',
+					contentType: 'application/json',
+					data: function(d) {
+						return JSON.stringify(d);
+					},
+					dataSrc: 'customer'
+				},
+				columns: [
+					{ data: 'type' },
+					{ data: 'value' }
+				],
+				'paging': false,
+				'ordering': false,
+				'info': false
+			});
+		});
 	};
 	
 	initPage();
